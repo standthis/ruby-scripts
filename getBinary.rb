@@ -3,7 +3,6 @@ require 'open-uri'
 # Target webpage
 # https://cache.ruby-lang.org/pub/ruby/2.6/ruby-2.6.5.tar.gz
 class RubyBinary
-  attr_reader :version 
 
   def initialize(version)
     @version = version
@@ -16,8 +15,10 @@ class RubyBinary
   end
 
   private
+  attr_reader :version 
 
   def splitVersion(version)
+    
     if version.split('.').count != 3
         puts "#{version} is invalid. Expected $.$.$"
         exit 1
@@ -31,28 +32,29 @@ class RubyBinary
 
   def saveFile(location, version, url)
     saveTo = "/#{location}/ruby-#{version}.tar.gz"
-    File.open(saveTo, "wb") do |file| 
-      file.write open(url).read
-    end
     puts "Target save location: #{saveTo}"
     puts "Downloading from #{url}..."
+    #File.open(saveTo, "wb") do |file| 
+    #  file.write open(url).read
+    #end
   end
-
 end
 
 def argparse
   if ARGV.length != 3
-    puts "#{program_name} method [FILE ...]"
+    puts "#{program_name} method version directory"
     exit 1
   end
-  method, version, location = ARGV[0], ARGV[1], ARGV[2]
+  method, version, location = ARGV[0].to_sym, ARGV[1], ARGV[2].to_sym
 end
 
 method, version, location = argparse
 
 ruby_bin = RubyBinary.new(version)
 
-if method == "download"
+if ruby_bin.public_methods(false).include?(method)
   ruby_bin.download("tmp")
   puts 'success downloaded'
+else
+  puts "Method #{method} is not an existing public method of the RubyBinary class"
 end
