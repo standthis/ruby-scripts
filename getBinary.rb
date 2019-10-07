@@ -54,7 +54,7 @@ method, version, location = argparse
 ruby_bin = RubyBinary.new(version)
 
 if ruby_bin.public_methods(false).include?(method.to_sym)
-  ruby_bin.download("tmp")
+  ruby_bin.download(location)
   puts 'success downloaded'
 else
   puts "Method #{method} is not an existing public method of the RubyBinary class"
