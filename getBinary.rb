@@ -9,9 +9,8 @@ class RubyBinary
   end
 
   def download(location)
-    major, minor = splitVersion(version)
-    url = makeURL(major, minor, version)
-    saveFile(location, version, url)
+    url = makeURL
+    saveFile(location, url)
   end
 
   private
@@ -27,12 +26,17 @@ class RubyBinary
     return major, minor
   end
 
-  def makeURL(major, minor, version)
+  def makeURL
+    major, minor = splitVersion(version)
     "https://cache.ruby-lang.org/pub/ruby/#{major}.#{minor}/ruby-#{version}.tar.gz"
   end
 
-  def saveFile(location, version, url)
-    saveTo = "/#{location}/ruby-#{version}.tar.gz"
+  def makeDirectory(location)
+    "/#{location}/ruby-#{version}.tar.gz"
+  end
+
+  def saveFile(location, url)
+    saveTo = makeDirectory(location)
     puts "Target save location: #{saveTo}"
     puts "Downloading from #{url}..."
     File.open(saveTo, "wb") do |file| 
@@ -41,21 +45,28 @@ class RubyBinary
   end
 end
 
-def argparse
-  if ARGV.length != 3
-    puts "#{program_name} method version directory"
-    exit 1
+class CommandLine
+  def self.runcli 
+    method, version, location = argparse
+
+    ruby_bin = RubyBinary.new(version)
+
+    if ruby_bin.public_methods(false).include?(method.to_sym)
+      ruby_bin.download(location)
+      puts 'Success file downloaded'
+    else
+      puts "Method #{method} is not an existing public method of the RubyBinary class"
+    end
   end
-  method, version, location = ARGV[0], ARGV[1], ARGV[2]
+
+  private
+  def self.argparse
+    if ARGV.length != 3
+      puts "./#{File.basename($0)} method version directory"
+      exit 1
+    end
+    method, version, location = ARGV[0], ARGV[1], ARGV[2]
+  end
 end
 
-method, version, location = argparse
-
-ruby_bin = RubyBinary.new(version)
-
-if ruby_bin.public_methods(false).include?(method.to_sym)
-  ruby_bin.download(location)
-  puts 'success downloaded'
-else
-  puts "Method #{method} is not an existing public method of the RubyBinary class"
-end
+CommandLine.runcli
